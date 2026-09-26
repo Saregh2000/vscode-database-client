@@ -17,12 +17,12 @@ Install from the [Visual Studio Code Marketplace](https://marketplace.visualstud
 
 ### Build and install this fork
 
-This repository contains the open-source 3.9.8 code, which has no saved-connection count check. The Marketplace links above install the upstream extension, not this fork. To install this fork with its separate extension ID:
+This fork is based on the open-source 3.9.8 code, which has no saved-connection count check. The Marketplace links above install the upstream extension, not this fork. To install this fork with its separate extension ID:
 
 ```sh
 npm install --legacy-peer-deps
 NODE_OPTIONS=--openssl-legacy-provider npx --yes @vscode/vsce package --no-dependencies
-code --install-extension vscode-database-client-community-3.9.8.vsix --force
+code --install-extension vscode-database-client-community-3.9.9.vsix --force
 ```
 
 ## Telemetry Reporting

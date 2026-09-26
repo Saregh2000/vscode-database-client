@@ -47,7 +47,7 @@
           :key="supportDatabase"
           @click="connectionOption.dbType = supportDatabase"
         >
-          {{ supportDatabase }}
+          {{ supportDatabase === "SqlServer" ? "SQL Server (MSSQL)" : supportDatabase }}
         </li>
       </ul>
     </section>
@@ -103,7 +103,7 @@
         </div>
       </section>
 
-      <SQLServer :connectionOption="connectionOption" v-if="connectionOption.dbType == 'SQL Server'" />
+      <SQLServer :connectionOption="connectionOption" v-if="connectionOption.dbType == 'SqlServer'" />
 
       <section>
         <div class="inline-block mb-2 mr-10" v-if="connectionOption.dbType != 'Redis'">
