@@ -22,7 +22,7 @@ This fork is based on the open-source 3.9.8 code, which has no saved-connection 
 ```sh
 npm install --legacy-peer-deps
 NODE_OPTIONS=--openssl-legacy-provider npx --yes @vscode/vsce package --no-dependencies
-code --install-extension vscode-database-client-community-3.10.0.vsix --force
+code --install-extension vscode-database-client-community-3.10.1.vsix --force
 ```
 
 ## Telemetry Reporting

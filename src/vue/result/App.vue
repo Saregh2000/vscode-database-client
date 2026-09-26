@@ -1,17 +1,28 @@
 <template>
   <div id="app">
-    <div class="hint">
-      <div style="width:95%;">
-        <el-input type="textarea" :autosize="{ minRows:2, maxRows:5}" v-model="toolbar.sql" class="sql-pannel" @keypress.native="panelInput" />
+    <div class="result-header" ref="resultHeader">
+      <div class="result-heading">
+        <div>
+          <span class="result-eyebrow">DATA EXPLORER</span>
+          <h1>{{ result.table || "Query results" }}</h1>
+          <p v-if="result.database">{{ result.database }}<span v-if="result.dbType"> · {{ result.dbType }}</span></p>
+        </div>
+        <span class="row-count" v-if="page.total != null">{{ page.total }} rows</span>
       </div>
-      <Toolbar :page="page" :showFullBtn="showFullBtn" :search.sync="table.search" :costTime="result.costTime" @changePage="changePage" @sendToVscode="sendToVscode" @export="exportOption.visible = true" @insert="$refs.editor.openInsert()" @deleteConfirm="deleteConfirm" @run="info.message = false;execute(toolbar.sql);" />
-      <div v-if="info.message ">
-        <div v-if="info.error" class="info-panel" style="color:red !important" v-html="info.message"></div>
-        <div v-if="!info.error" class="info-panel" style="color: green !important;" v-html="info.message"></div>
+      <div class="query-panel">
+        <div class="query-heading">
+          <span>SQL query</span>
+          <span class="shortcut-hint">Ctrl+Enter to run</span>
+        </div>
+        <div class="query-input-row">
+          <el-input type="textarea" :autosize="{ minRows:2, maxRows:5}" v-model="toolbar.sql" class="sql-pannel" @keypress.native="panelInput" />
+          <el-button class="run-button" type="primary" size="small" icon="el-icon-caret-right" @click="info.message = false;execute(toolbar.sql);">Run</el-button>
+        </div>
       </div>
+      <Toolbar :page="page" :showFullBtn="showFullBtn" :search.sync="table.search" :costTime="result.costTime" @changePage="changePage" @sendToVscode="sendToVscode" @export="exportOption.visible = true" @insert="$refs.editor.openInsert()" @deleteConfirm="deleteConfirm" />
+      <div v-if="info.message" class="info-panel" :class="info.error ? 'info-panel--error' : 'info-panel--success'" v-html="info.message"></div>
     </div>
-    <!-- trigger when click -->
-    <ux-grid ref="dataTable" :data="filterData" v-loading='table.loading' size='small' :cell-style="{height: '35px'}" @sort-change="sort" :height="remainHeight" width="100vh" stripe :checkboxConfig="{ checkMethod: selectable}">
+    <ux-grid ref="dataTable" class="result-grid" :data="filterData" v-loading='table.loading' size='small' :cell-style="{height: '35px'}" @sort-change="sort" :height="remainHeight" stripe :checkboxConfig="{ checkMethod: selectable}">
       <ux-table-column type="checkbox" width="40" fixed="left"></ux-table-column>
       <ux-table-column type="index" width="40" :seq-method="({row,rowIndex})=>(rowIndex||!row.isFilter)?rowIndex:undefined">
         <Controller slot="header" :result="result" :toolbar="toolbar" />
@@ -97,12 +108,13 @@ export default {
     };
   },
   mounted() {
-    this.remainHeight = window.innerHeight - 90;
+    this.updateGridHeight();
     this.showFullBtn = window.outerWidth / window.innerWidth >= 2;
-    window.addEventListener("resize", () => {
-      this.remainHeight = window.innerHeight - 90;
-      this.showFullBtn = window.outerWidth / window.innerWidth >= 2;
-    });
+    window.addEventListener("resize", this.onResize);
+    if (window.ResizeObserver) {
+      this.headerObserver = new ResizeObserver(this.updateGridHeight);
+      this.headerObserver.observe(this.$refs.resultHeader);
+    }
     const handlerData = (data, sameTable) => {
       this.result = data;
       this.toolbar.sql = data.sql;
@@ -221,7 +233,22 @@ export default {
       }
     });
   },
+  beforeDestroy() {
+    window.removeEventListener("resize", this.onResize);
+    if (this.headerObserver) this.headerObserver.disconnect();
+  },
   methods: {
+    updateGridHeight() {
+      this.$nextTick(() => {
+        if (this.$refs.resultHeader) {
+          this.remainHeight = Math.max(180, window.innerHeight - this.$refs.resultHeader.getBoundingClientRect().bottom - 8);
+        }
+      });
+    },
+    onResize() {
+      this.updateGridHeight();
+      this.showFullBtn = window.outerWidth / window.innerWidth >= 2;
+    },
     panelInput(event){
       if(event.code=='Enter' && event.ctrlKey){
         this.execute(this.toolbar.sql)

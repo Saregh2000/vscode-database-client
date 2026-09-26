@@ -1,19 +1,35 @@
 <template>
   <div class="toolbar">
-    <el-button v-if="showFullBtn" @click="()=>$emit('sendToVscode','full')" type="primary" title="Full Result View" icon="el-icon-rank" size="mini" circle>
-    </el-button>
-    <el-input v-model="searchInput" size="mini" placeholder="Input To Search Data" style="width:200px" :clearable="true" />
-    <el-button icon="icon-github" title="Star the project to represent support." @click='()=>$emit("sendToVscode", "openGithub")'></el-button>
-    <el-button icon="el-icon-circle-plus-outline" @click="$emit('insert')" title="Insert new row"></el-button>
-    <el-button icon="el-icon-delete" style="color:#f56c6c" @click="$emit('deleteConfirm');" title="delete"></el-button>
-    <el-button icon="el-icon-bottom" @click="$emit('export');" style="color:#4ba3ff;" title="Export"></el-button>
-    <el-button icon="el-icon-caret-right" title="Execute Sql" style="color: #54ea54;margin-left:0;" @click="$emit('run');"></el-button>
-    <div style="display:inline-block;font-size:14px;padding-left: 8px;" class="el-pagination__total">
-      Cost: {{costTime}}ms
+    <div class="toolbar-actions">
+      <el-input
+        v-model="searchInput"
+        class="toolbar-search"
+        size="small"
+        placeholder="Search visible rows"
+        prefix-icon="el-icon-search"
+        :clearable="true"
+        aria-label="Search visible rows"
+      />
+      <div class="action-group">
+        <el-button v-if="showFullBtn" @click="$emit('sendToVscode', 'full')" icon="el-icon-rank" size="small" title="Full result view" aria-label="Full result view" />
+        <el-button @click="$emit('insert')" icon="el-icon-circle-plus-outline" size="small" title="Insert new row" aria-label="Insert new row" />
+        <el-button @click="$emit('deleteConfirm')" icon="el-icon-delete" size="small" title="Delete selected rows" aria-label="Delete selected rows" />
+        <el-button @click="$emit('export')" icon="el-icon-download" size="small" title="Export results" aria-label="Export results" />
+      </div>
     </div>
-    <div style="display:inline-block">
-      <el-pagination @size-change="changePageSize" @current-change="page=>$emit('changePage',page,true)" @next-click="()=>$emit('changePage',1)" @prev-click="()=>$emit('changePage',-1)" :current-page.sync="page.pageNum" :small="true" :page-size="page.pageSize"  :layout="page.total!=null?'prev,pager, next, total':'prev, next'" :total="page.total">
-      </el-pagination>
+    <div class="toolbar-meta">
+      <span class="query-time" :title="'Query completed in ' + costTime + ' ms'">{{ costTime }} ms</span>
+      <el-pagination
+        @current-change="page => $emit('changePage', page, true)"
+        @next-click="() => $emit('changePage', 1)"
+        @prev-click="() => $emit('changePage', -1)"
+        :current-page.sync="page.pageNum"
+        :small="true"
+        :page-size="page.pageSize"
+        :layout="page.total != null ? 'prev,pager,next,total' : 'prev,next'"
+        :total="page.total"
+      />
+      <el-button @click="$emit('sendToVscode', 'openGithub')" icon="icon-github" size="small" title="Project on GitHub" aria-label="Project on GitHub" />
     </div>
   </div>
 </template>
@@ -22,68 +38,79 @@
 export default {
   props: ["costTime", "search", "showFullBtn", "page"],
   data() {
-    return {
-      searchInput: null,
-    };
-  },
-  methods: {
-    changePageSize(size) {
-      this.page.pageSize = size;
-      vscodeEvent.emit("changePageSize", size);
-      this.changePage(0);
-    },
+    return { searchInput: this.search || "" };
   },
   watch: {
-    searchInput: function () {
-      this.$emit("update:search", this.searchInput); // 将子组件的输入框的值传递给父组件 父组件需要用.sync
+    searchInput(value) {
+      this.$emit("update:search", value);
+    },
+    search(value) {
+      if (value !== this.searchInput) this.searchInput = value;
     },
   },
 };
 </script>
 
 <style scoped>
+.toolbar,
+.toolbar-actions,
+.toolbar-meta,
+.action-group {
+  display: flex;
+  align-items: center;
+}
+
 .toolbar {
-  margin-top: 3px;
-  margin-bottom: 3px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  min-height: 42px;
 }
 
-.el-button--mini.is-circle {
-  padding: 6px;
+.toolbar-actions,
+.toolbar-meta { flex-wrap: wrap; gap: 8px; }
+.action-group { gap: 5px; }
+.toolbar-search { width: min(250px, 100%); }
+.query-time {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+  white-space: nowrap;
 }
 
-.el-button--default {
-  padding: 0;
-  border: none;
-  font-size: 19px;
-  margin-left: 7px;
+.toolbar >>> .el-button {
+  margin: 0;
+  padding: 7px 9px;
+  color: var(--vscode-foreground);
+  border-color: var(--vscode-panel-border, var(--vscode-dropdown-border));
+  background: var(--vscode-editor-background);
 }
 
-.el-button:focus{
-  color: inherit !important;
-  background-color: var(--vscode-editor-background);
+.toolbar >>> .el-button:hover,
+.toolbar >>> .el-button:focus {
+  color: var(--vscode-button-foreground);
+  border-color: var(--vscode-focusBorder);
+  background: var(--vscode-button-background);
 }
 
-.el-button:hover {
-  color: #409eff !important;
-  border-color: #c6e2ff;
-  background-color: var(--vscode-editor-background);
+.toolbar >>> .el-input__inner {
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border-color: var(--vscode-input-border, var(--vscode-dropdown-border));
 }
 
-.el-pagination {
-  padding: 0;
-}
->>> .el-input{
-  bottom: 2px;
-}
->>> .el-input--mini .el-input__inner{
-  height: 24px;
+.toolbar >>> .el-pagination,
+.toolbar >>> .el-pagination button,
+.toolbar >>> .el-pager li {
+  color: var(--vscode-foreground);
+  background: transparent;
 }
 
-</style>
+.toolbar >>> .el-pager li.active { color: var(--vscode-textLink-foreground); }
 
-<style>
-.el-pagination span,.el-pagination li,
-.btn-prev i,.btn-next i{
-  line-height: 27px !important;
+@media (max-width: 620px) {
+  .toolbar,
+  .toolbar-actions,
+  .toolbar-meta { align-items: stretch; width: 100%; }
+  .toolbar-search { width: 100%; }
 }
 </style>

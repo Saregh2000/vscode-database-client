@@ -5,7 +5,7 @@
         <el-alert title="sqlite not installed" type="warning" show-icon />
       </div>
       <div class="inline-block mr-5 font-bold w-36">
-        <button class="inline button button--primary w-128" @click="install">Install Sqlite</button>
+        <button class="inline button button--primary w-128" type="button" @click="install">Install Sqlite</button>
       </div>
     </section>
     <section class="mb-2">

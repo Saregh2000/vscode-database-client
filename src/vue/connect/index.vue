@@ -1,6 +1,10 @@
 <template>
-  <form @submit.prevent="tryConnect" class="flex flex-col mx-auto connect-container">
-    <h1 class="py-4 text-2xl">Connect to Database Server</h1>
+  <form @submit.prevent="tryConnect" class="connect-container">
+    <header class="page-heading">
+      <span class="eyebrow">DATABASE CLIENT</span>
+      <h1>{{ editModel ? "Edit connection" : "New connection" }}</h1>
+      <p>Choose a database, enter its details, and save it to your connection list.</p>
+    </header>
 
     <blockquote class="p-3 mb-2 panel error" v-if="connect.error">
       <section class="panel__text">
@@ -18,56 +22,77 @@
       </section>
     </blockquote>
 
-    <section class="flex flex-wrap items-center">
-      <div class="inline-block mb-2 mr-10">
-        <label class="inline-block mr-5 font-bold">Connection Name</label>
+    <section class="form-card">
+      <div class="section-heading">
+        <span class="section-number">01</span>
+        <div><h2>Connection identity</h2><p>Name and organize this connection in the sidebar.</p></div>
+      </div>
+      <div class="field-grid">
+      <div class="form-field">
+        <label for="connection-name">Connection name</label>
         <input
+          id="connection-name"
           class="field__input"
-          style="min-width: 400px"
-          placeholder="Connection name"
+          placeholder="e.g. Production reporting"
           v-model="connectionOption.name"
         />
       </div>
-      <div class="inline-block mb-2 mr-10">
-        <label class="inline-block mr-5 font-bold">Package</label>
+      <div class="form-field">
+        <label for="connection-package">Package</label>
         <input
+          id="connection-package"
           class="field__input"
-          placeholder="Package name"
+          placeholder="e.g. Work"
           required
           v-model.trim="connectionOption.packageName"
         />
+        <small>Connections with the same package name appear in one sidebar folder.</small>
       </div>
-      <div class="inline-block mb-2 mr-10">
-        <label class="inline-block mr-5 font-bold">Connection Target</label>
-        <div class="inline-flex items-center">
-          <el-radio v-model="connectionOption.global" :label="true"> Global </el-radio>
-          <el-radio v-model="connectionOption.global" :label="false"> Current Workspace </el-radio>
+      <div class="form-field scope-field">
+        <span class="field-label">Save in</span>
+        <div class="scope-options">
+          <el-radio v-model="connectionOption.global" :label="true">All workspaces</el-radio>
+          <el-radio v-model="connectionOption.global" :label="false">Current workspace</el-radio>
         </div>
+      </div>
       </div>
     </section>
 
-    <section class="mt-5">
-      <label class="block font-bold">Database Type</label>
-      <ul class="flex-wrap tab">
+    <section class="form-card">
+      <div class="section-heading">
+        <span class="section-number">02</span>
+        <div><h2>Database type</h2><p>Select the server or file you want to connect to.</p></div>
+      </div>
+      <ul class="database-types" aria-label="Database type">
         <li
-          class="tab__item"
-          :class="{ 'tab__item--active': supportDatabase == connectionOption.dbType }"
+          class="database-type"
+          :class="{ 'database-type--active': supportDatabase == connectionOption.dbType }"
           v-for="supportDatabase in supportDatabases"
           :key="supportDatabase"
           @click="connectionOption.dbType = supportDatabase"
+          @keydown.enter.prevent="connectionOption.dbType = supportDatabase"
+          @keydown.space.prevent="connectionOption.dbType = supportDatabase"
+          role="button"
+          :tabindex="0"
+          :aria-pressed="supportDatabase == connectionOption.dbType"
         >
           {{ supportDatabase === "SqlServer" ? "SQL Server (MSSQL)" : supportDatabase }}
         </li>
       </ul>
     </section>
 
+    <section class="form-card details-card">
+      <div class="section-heading">
+        <span class="section-number">03</span>
+        <div><h2>Connection details</h2><p>Set the address, credentials, and options for {{ connectionOption.dbType === "SqlServer" ? "SQL Server" : connectionOption.dbType }}.</p></div>
+      </div>
     <ElasticSearch v-if="connectionOption.dbType == 'ElasticSearch'" :connectionOption="connectionOption" />
     <SQLite
       v-else-if="connectionOption.dbType == 'SQLite'"
       :connectionOption="connectionOption"
       :sqliteState="sqliteState"
       @choose="choose('sqlite')"
-      @install="installSqlite"
+      @installSqlite="installSqlite"
     />
     <SSH
       v-else-if="connectionOption.dbType == 'SSH'"
@@ -222,9 +247,14 @@
     />
     <SSH :connectionOption="connectionOption" v-if="connectionOption.usingSSH && connectionOption.dbType != 'SSH'" />
 
-    <div class="mt-2">
-      <button class="inline mr-4 button button--primary w-28" type="submit" v-loading="connect.loading">Connect</button>
-      <button class="inline button button--primary w-28" @click="close">Close</button>
+    </section>
+
+    <div class="form-actions">
+      <span>Connection details are saved when you connect.</span>
+      <div class="action-buttons">
+        <button class="button button--secondary" type="button" @click="close">Close</button>
+        <button class="button button--primary" type="submit" v-loading="connect.loading">Connect</button>
+      </div>
     </div>
   </form>
 </template>
@@ -492,31 +522,195 @@ export default {
 <style scoped>
 .connect-container {
   width: 100%;
-  max-width: 1300px;
+  max-width: 1050px;
+  margin: 0 auto;
+  padding: 28px 24px 36px;
+  color: var(--vscode-foreground);
 }
 
-.tab {
-  border-bottom: 1px solid var(--vscode-dropdown-border);
+.page-heading {
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.page-heading h1 {
+  margin: 5px 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.page-heading p,
+.section-heading p,
+.form-field small,
+.form-actions > span {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+}
+
+.form-card {
+  margin-bottom: 16px;
+  padding: 20px 22px;
+  border: 1px solid var(--vscode-panel-border, var(--vscode-dropdown-border));
+  border-radius: 8px;
+  background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+}
+
+.section-heading {
   display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.section-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 7px;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.section-heading h2 {
+  margin: 1px 0 3px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.section-heading p {
+  margin: 0;
+}
+
+.field-grid,
+.details-card > section,
+.details-card > template > section,
+.details-card >>> section {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 20px;
+}
+
+.form-field {
+  min-width: 0;
+}
+
+.form-field label,
+.field-label,
+.details-card >>> label {
+  display: block;
+  width: auto;
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.form-field small {
+  display: block;
+  margin-top: 6px;
+}
+
+.scope-field {
+  grid-column: 1 / -1;
+}
+
+.scope-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding-top: 4px;
+}
+
+.database-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
   padding: 0;
 }
 
-.tab__item {
+.database-type {
   list-style: none;
   cursor: pointer;
-  font-size: 13px;
-  padding: 7px 10px;
-  color: var(--vscode-foreground);
-  border-bottom: 1px solid transparent;
+  padding: 8px 12px;
+  border: 1px solid var(--vscode-dropdown-border, var(--vscode-panel-border));
+  border-radius: 6px;
+  background: var(--vscode-editor-background);
+  font-size: 12px;
+  line-height: 1.3;
 }
 
-.tab__item:hover {
-  color: var(--vscode-panelTitle-activeForeground);
+.database-type:hover,
+.database-type:focus-visible {
+  border-color: var(--vscode-focusBorder);
+  outline: none;
 }
 
-.tab__item--active {
-  color: var(--vscode-panelTitle-activeForeground);
-  border-bottom-color: var(--vscode-panelTitle-activeForeground);
+.database-type--active {
+  border-color: var(--vscode-focusBorder);
+  background: var(--vscode-list-activeSelectionBackground);
+  color: var(--vscode-list-activeSelectionForeground);
+}
+
+.details-card > section,
+.details-card >>> section {
+  margin: 0 0 14px;
+}
+
+.details-card > section > div,
+.details-card >>> section > div {
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+}
+
+.connect-container .field__input,
+.details-card >>> .field__input,
+.details-card >>> .el-select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 30px;
+  padding: 5px 9px;
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, var(--vscode-dropdown-border));
+  border-radius: 4px;
+}
+
+.details-card >>> .el-select {
+  padding: 0;
+}
+
+.connect-container .field__input:focus,
+.details-card >>> .field__input:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  border-color: var(--vscode-focusBorder);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
 }
 
 input::-webkit-outer-spin-button,
@@ -526,11 +720,11 @@ input::-webkit-inner-spin-button {
 }
 
 .button {
-  padding: 4px 14px;
-  border: 0;
-  display: inline-block;
-  outline: none;
-  @apply font-bold;
+  min-width: 92px;
+  padding: 7px 14px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -541,6 +735,15 @@ input::-webkit-inner-spin-button {
 
 .button--primary:hover {
   background-color: var(--vscode-button-hoverBackground);
+}
+
+.button--secondary {
+  color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+  background: var(--vscode-button-secondaryBackground, var(--vscode-editor-background));
+}
+
+.button--secondary:hover {
+  background: var(--vscode-button-secondaryHoverBackground, var(--vscode-list-hoverBackground));
 }
 
 .panel {
@@ -559,5 +762,13 @@ input::-webkit-inner-spin-button {
 
 .panel__text {
   line-height: 2;
+}
+
+@media (max-width: 700px) {
+  .connect-container { padding: 20px 14px 28px; }
+  .form-card { padding: 16px; }
+  .field-grid,
+  .details-card > section,
+  .details-card >>> section { grid-template-columns: minmax(0, 1fr); }
 }
 </style>

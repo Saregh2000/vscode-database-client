@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# 3.10.1 2026-9-26
+
+- Organize the connection page into spacious identity, database type, and details sections.
+- Refresh the table viewer with a clearer query editor, responsive actions, and a height-aware data grid.
+
 # 3.10.0 2026-9-26
 
 - Keep new connections separate when reusing the connection form.
