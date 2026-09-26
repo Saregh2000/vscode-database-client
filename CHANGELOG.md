@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 3.10.0 2026-9-26
+
+- Keep new connections separate when reusing the connection form.
+- Save connection settings before attempting to contact the server.
+- Group Database and NoSQL connections by package name.
+
 # 3.9.8 2021-7-27
 
 - Support special ssl ca certificate.

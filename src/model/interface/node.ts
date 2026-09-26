@@ -34,6 +34,7 @@ export abstract class Node extends vscode.TreeItem implements CopyAble {
     public database?: string;
     public schema: string;
     public name?: string;
+    public packageName?: string;
     public timezone?: string;
     public connectTimeout?: number;
     public requestTimeout?: number;
@@ -126,6 +127,7 @@ export abstract class Node extends vscode.TreeItem implements CopyAble {
         this.encoding = source.encoding
         this.showHidden = source.showHidden
         this.connectionKey = source.connectionKey
+        this.packageName = source.packageName
         this.global = source.global
         this.dbType = source.dbType
         this.connectionUrl = source.connectionUrl
@@ -164,7 +166,7 @@ export abstract class Node extends vscode.TreeItem implements CopyAble {
 
     public initKey() {
         if (this.key) return this.key;
-        this.key = new Date().getTime() + "";
+        this.key = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     }
 
     public async refresh() {
@@ -176,7 +178,7 @@ export abstract class Node extends vscode.TreeItem implements CopyAble {
 
         try {
             const connectionKey = getKey(command.connectionKey || this.connectionKey);
-            const connections = this.context.get<{ [key: string]: Node }>(connectionKey, {});
+            const connections = { ...this.context.get<{ [key: string]: Node }>(connectionKey, {}) };
             const key = this.key
 
             switch (command.command) {
@@ -202,6 +204,7 @@ export abstract class Node extends vscode.TreeItem implements CopyAble {
             }
         } catch (error) {
             Console.log(error)
+            throw error
         }
 
     }

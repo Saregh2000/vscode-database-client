@@ -22,7 +22,7 @@ This fork is based on the open-source 3.9.8 code, which has no saved-connection 
 ```sh
 npm install --legacy-peer-deps
 NODE_OPTIONS=--openssl-legacy-provider npx --yes @vscode/vsce package --no-dependencies
-code --install-extension vscode-database-client-community-3.9.9.vsix --force
+code --install-extension vscode-database-client-community-3.10.0.vsix --force
 ```
 
 ## Telemetry Reporting
@@ -35,6 +35,8 @@ Telemetry reporting follows the [telemetry settings](https://code.visualstudio.c
 
 1. Open Database Explorer panel, then click the `+` button.
 2. Select your database type, input connection config then click the connect button.
+
+Give each connection a package name. Connections with the same name appear in one folder in the Database or NoSQL sidebar. Existing connections without a package appear under `Default`. The connection settings are saved before the server is contacted, so they remain available if the server is offline.
 
 ![connection](https://doc.database-client.com/images/connection.jpg)
 

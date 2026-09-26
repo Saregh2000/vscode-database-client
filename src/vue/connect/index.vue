@@ -29,6 +29,15 @@
         />
       </div>
       <div class="inline-block mb-2 mr-10">
+        <label class="inline-block mr-5 font-bold">Package</label>
+        <input
+          class="field__input"
+          placeholder="Package name"
+          required
+          v-model.trim="connectionOption.packageName"
+        />
+      </div>
+      <div class="inline-block mb-2 mr-10">
         <label class="inline-block mr-5 font-bold">Connection Target</label>
         <div class="inline-flex items-center">
           <el-radio v-model="connectionOption.global" :label="true"> Global </el-radio>
@@ -229,45 +238,46 @@ import FTP from "./component/FTP.vue";
 import SSL from "./component/SSL.vue";
 import { getVscodeEvent } from "../util/vscode";
 let vscodeEvent;
+function createDefaultConnectionOption() {
+  return {
+    host: "127.0.0.1",
+    dbPath: "",
+    port: "3306",
+    user: "root",
+    authType: "default",
+    password: "",
+    encoding: "utf8",
+    database: null,
+    usingSSH: false,
+    showHidden: false,
+    includeDatabases: null,
+    dbType: "MySQL",
+    encrypt: true,
+    connectionUrl: "",
+    socketPath: "",
+    srv: false,
+    esAuth: "none",
+    global: true,
+    key: null,
+    packageName: "Default",
+    timezone: "+00:00",
+    ssh: {
+      host: "",
+      privateKeyPath: "",
+      port: 22,
+      username: "root",
+      type: "password",
+      watingTime: 5000,
+      algorithms: { cipher: [] },
+    },
+  };
+}
 export default {
   name: "Connect",
   components: { ElasticSearch, SQLite, SQLServer, SSH, SSL, FTP },
   data() {
     return {
-      connectionOption: {
-        host: "127.0.0.1",
-        dbPath: "",
-        port: "3306",
-        user: "root",
-        authType: "default",
-        password: "",
-        encoding: "utf8",
-        database: null,
-        usingSSH: false,
-        showHidden: false,
-        includeDatabases: null,
-        dbType: "MySQL",
-        encrypt: true,
-        connectionUrl: "",
-        socketPath: "",
-        srv: false,
-        esAuth: "none",
-        global: true,
-        key: null,
-        // scheme: "http",
-        timezone: "+00:00",
-        ssh: {
-          host: "",
-          privateKeyPath: "",
-          port: 22,
-          username: "root",
-          type: "password",
-          watingTime: 5000,
-          algorithms: {
-            cipher: [],
-          },
-        },
-      },
+      connectionOption: createDefaultConnectionOption(),
       sqliteState: false,
       type: "password",
       supportDatabases: [
@@ -297,11 +307,15 @@ export default {
     vscodeEvent
       .on("edit", (node) => {
         this.editModel = true;
-        console.log(node);
         this.connectionOption = node;
+        this.connectionOption.packageName = node.packageName || "Default";
       })
       .on("connect", (node) => {
         this.editModel = false;
+        this.connectionOption = createDefaultConnectionOption();
+        this.connect.loading = false;
+        this.connect.success = false;
+        this.connect.error = false;
       })
       .on("choose", ({ event, path }) => {
         switch (event) {
@@ -323,14 +337,19 @@ export default {
         this.connect.error = true;
         this.connect.errorMessage = err;
       })
+      .on("saved", (res) => {
+        this.connectionOption.connectionKey = res.connectionKey;
+        this.connectionOption.key = res.key;
+        this.connectionOption.isGlobal = this.connectionOption.global;
+      })
       .on("success", (res) => {
         this.connect.loading = false;
         this.connect.error = false;
         this.connect.success = true;
         this.connect.successMessage = res.message;
-        this.connectionOption.connectionKey = res.connectionKey;
-        this.connectionOption.key = res.key;
-        this.connectionOption.isGlobal = this.connectionOption.global;
+        if (!this.editModel) {
+          this.connectionOption = createDefaultConnectionOption();
+        }
       });
     vscodeEvent.emit("route-" + this.$route.name);
   },

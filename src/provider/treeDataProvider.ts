@@ -3,6 +3,7 @@ import { CatalogNode } from "@/model/database/catalogNode";
 import { EsConnectionNode } from "@/model/es/model/esConnectionNode";
 import { FTPConnectionNode } from "@/model/ftp/ftpConnectionNode";
 import { InfoNode } from "@/model/other/infoNode";
+import { ConnectionPackageNode } from "@/model/other/connectionPackageNode";
 import { RedisConnectionNode } from "@/model/redis/redisConnectionNode";
 import { SSHConnectionNode } from "@/model/ssh/sshConnectionNode";
 import * as vscode from "vscode";
@@ -35,7 +36,7 @@ export class DbTreeDataProvider implements vscode.TreeDataProvider<Node> {
     public async getChildren(element?: Node): Promise<Node[]> {
         return new Promise(async (res, rej) => {
             if (!element) {
-                res(this.getConnectionNodes())
+                res(this.getPackageNodes())
                 return;
             }
             try {
@@ -128,6 +129,21 @@ export class DbTreeDataProvider implements vscode.TreeDataProvider<Node> {
         return Object.keys(workspaceConnections).map(key => this.getNode(workspaceConnections[key], key, false, connetKey)).concat(
             Object.keys(globalConnections).map(key => this.getNode(globalConnections[key], key, true, connetKey))
         )
+    }
+
+    private async getPackageNodes(): Promise<Node[]> {
+        const connections = await this.getConnectionNodes();
+        const packages = new Map<string, Node[]>();
+        for (const connection of connections) {
+            const name = connection.packageName?.trim() || "Default";
+            if (!packages.has(name)) {
+                packages.set(name, []);
+            }
+            packages.get(name).push(connection);
+        }
+        return Array.from(packages.entries())
+            .sort(([left], [right]) => left.localeCompare(right))
+            .map(([name, nodes]) => new ConnectionPackageNode(name, this.connectionKey, nodes));
     }
 
     private getNode(connectInfo: Node, key: string, global: boolean, connectionKey: string) {

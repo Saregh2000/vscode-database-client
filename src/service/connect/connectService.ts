@@ -70,18 +70,19 @@ export class ConnectService {
                 }).on("connecting", async (data) => {
                     const connectionOption = data.connectionOption
                     const node:Node = Util.trim(NodeUtil.of(connectionOption))
+                    let saved = false;
                     try {
+                        node.packageName = node.packageName || "Default";
                         node.initKey();
-                        await this.connect(node)
-                        await provider.addConnection(node)
+                        await provider.addConnection(node);
+                        saved = true;
                         const { key, connectionKey } = node
+                        handler.emit("saved", { key, connectionKey });
+                        await this.connect(node)
                         handler.emit("success", { message: 'connect success!', key, connectionKey })
                     } catch (err) {
-                        if (err?.message) {
-                            handler.emit("error", err.message)
-                        } else {
-                            handler.emit("error", err)
-                        }
+                        const message = err?.message || String(err);
+                        handler.emit("error", saved ? `Connection saved, but could not connect: ${message}` : `Could not save connection: ${message}`);
                     }
                 }).on("close", () => {
                     handler.panel.dispose()
