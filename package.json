@@ -1,9 +1,9 @@
 {
-	"name": "vscode-mysql-client2",
-	"displayName": "MySQL",
+	"name": "vscode-database-client-community",
+	"displayName": "Database Client (Community Fork)",
 	"description": "Database Client for vscode",
 	"version": "3.9.8",
-	"publisher": "cweijan",
+	"publisher": "Saregh2000",
 	"icon": "resources/logo.png",
 	"engines": {
 		"vscode": "^1.51.0"
@@ -20,13 +20,12 @@
 		"Redis"
 	],
 	"bugs": {
-		"url": "https://github.com/cweijan/vscode-database-client/issues",
-		"email": "cweijan@163.com"
+		"url": "https://github.com/Saregh2000/vscode-database-client/issues"
 	},
-	"homepage": "https://github.com/cweijan/vscode-database-client/blob/master/README.md",
+	"homepage": "https://github.com/Saregh2000/vscode-database-client",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/cweijan/vscode-database-client.git"
+		"url": "https://github.com/Saregh2000/vscode-database-client.git"
 	},
 	"activationEvents": [
 		"onCommand:mysql.connection.add",
@@ -1072,7 +1071,7 @@
 		"mongodb": "^3.6.9",
 		"mysql2": "^2.2.5",
 		"officegen": "^0.6.5",
-		"pg": "^8.5.1",
+		"pg": "8.5.1",
 		"portfinder": "^1.0.26",
 		"pretty-bytes": "^5.3.0",
 		"progress-stream": "^2.0.0",

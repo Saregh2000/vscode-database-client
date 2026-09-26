@@ -15,6 +15,16 @@ This project is a database client for Visual Studio Code, supporting the managem
 
 Install from the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=cweijan.vscode-mysql-client2) or [Open VSX](https://open-vsx.org/extension/cweijan/vscode-mysql-client2).
 
+### Build and install this fork
+
+This repository contains the open-source 3.9.8 code, which has no saved-connection count check. The Marketplace links above install the upstream extension, not this fork. To install this fork with its separate extension ID:
+
+```sh
+npm install --legacy-peer-deps
+NODE_OPTIONS=--openssl-legacy-provider npx --yes @vscode/vsce package --no-dependencies
+code --install-extension vscode-database-client-community-3.9.8.vsix --force
+```
+
 ## Telemetry Reporting
 
 The Database Client extension will collects and sends anonymous usage data to the Database Client server to help improve our products and services. Read our [Privacy Statement](https://database-client.com/#/privacyPolicy) to learn more.
