@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# 3.10.2 2026-9-26
+
+- Give every new connection a fresh saved ID, even when an existing form is reused after a failed connection attempt.
+- Move a saved connection between SQL and NoSQL lists only when editing that connection.
+- Save the edited connection in its new location before removing its old entry.
+
 # 3.10.1 2026-9-26
 
 - Organize the connection page into spacious identity, database type, and details sections.

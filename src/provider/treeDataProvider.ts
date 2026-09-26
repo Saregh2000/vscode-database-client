@@ -70,28 +70,30 @@ export class DbTreeDataProvider implements vscode.TreeDataProvider<Node> {
         connectionNode.indent({ command: CommandKey.update })
     }
 
-    public async addConnection(node: Node) {
+    public async addConnection(node: Node, original?: Node) {
+        const newKey = this.getKeyByNode(node);
+        node.context = node.global ? this.context.globalState : this.context.workspaceState;
+        delete (node as any).isGlobal;
 
-        const newKey = this.getKeyByNode(node)
-        node.context = node.global ? this.context.globalState : this.context.workspaceState
-
-        const isGlobal = (node as any).isGlobal;
-        const configNotChange = newKey == node.connectionKey && isGlobal == node.global
-        if (configNotChange) {
-            await node.indent({ command: CommandKey.update })
+        if (!original) {
+            node.key = null;
+            node.initKey();
+            node.connectionKey = newKey;
+            await node.indent({ command: CommandKey.add, connectionKey: newKey });
             return;
         }
 
-        // config has change, remove old connection.
-        if (isGlobal != null) {
-            node.context = isGlobal ? this.context.globalState : this.context.workspaceState
-            await node.indent({ command: CommandKey.delete, connectionKey: node.connectionKey, refresh: false })
-            node.context = node.global ? this.context.globalState : this.context.workspaceState
+        node.key = original.key;
+        node.connectionKey = newKey;
+        const oldKey = original.connectionKey || this.getKeyByNode(original);
+        if (oldKey == newKey && original.global == node.global) {
+            await node.indent({ command: CommandKey.update });
+            return;
         }
 
-        node.connectionKey = newKey
-        await node.indent({ command: CommandKey.add, connectionKey: newKey })
-
+        await node.indent({ command: CommandKey.add, connectionKey: newKey, refresh: false });
+        await original.indent({ command: CommandKey.delete, connectionKey: oldKey, refresh: false });
+        DbTreeDataProvider.refresh();
     }
 
     private getKeyByNode(connectionNode: Node): string {

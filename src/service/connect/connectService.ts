@@ -20,6 +20,7 @@ var commandExistsSync = require('command-exists').sync;
 export class ConnectService {
 
     public async openConnect(provider: DbTreeDataProvider, connectionNode?: ConnectionNode) {
+        let originalConnection: Node = connectionNode;
         let node: any;
         if (connectionNode) {
             node = { ...NodeUtil.removeParent(connectionNode), isGlobal: connectionNode.global }
@@ -73,8 +74,8 @@ export class ConnectService {
                     let saved = false;
                     try {
                         node.packageName = node.packageName || "Default";
-                        node.initKey();
-                        await provider.addConnection(node);
+                        await provider.addConnection(node, originalConnection);
+                        if (connectionNode) originalConnection = node;
                         saved = true;
                         const { key, connectionKey } = node
                         handler.emit("saved", { key, connectionKey });

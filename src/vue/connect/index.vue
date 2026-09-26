@@ -368,9 +368,12 @@ export default {
         this.connect.errorMessage = err;
       })
       .on("saved", (res) => {
-        this.connectionOption.connectionKey = res.connectionKey;
-        this.connectionOption.key = res.key;
-        this.connectionOption.isGlobal = this.connectionOption.global;
+        if (this.editModel) {
+          this.connectionOption.connectionKey = res.connectionKey;
+          this.connectionOption.key = res.key;
+        } else {
+          this.connectionOption = createDefaultConnectionOption();
+        }
       })
       .on("success", (res) => {
         this.connect.loading = false;
@@ -392,6 +395,7 @@ export default {
       this.sqliteState = true;
     },
     tryConnect() {
+      if (this.connect.loading) return;
       this.connect.loading = true;
       vscodeEvent.emit("connecting", {
         connectionOption: this.connectionOption,

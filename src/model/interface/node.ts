@@ -183,6 +183,9 @@ export abstract class Node extends vscode.TreeItem implements CopyAble {
 
             switch (command.command) {
                 case CommandKey.add:
+                    if (connections[key]) {
+                        throw new Error("A connection with this ID already exists. Please retry.");
+                    }
                     connections[key] = NodeUtil.removeParent(this);
                     break;
                 case CommandKey.update:
